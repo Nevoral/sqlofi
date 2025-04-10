@@ -33,18 +33,19 @@ import (
 )
 
 type User struct {
-	ID        int64  `sql:"primary key;autoincrement"`
-	Username  string `sql:"NOT NULL;UNIQUE"`
-	Email     string `sql:"NOT NULL;UNIQUE"`
-	CreatedAt string `sql:"NOT NULL;DEFAULT:CURRENT_TIMESTAMP"`
+	Id       int64          `sqlofi:"PRIMARY KEY AUTOINCREMENT"`
+	Username string         `sqlofi:"NOT NULL UNIQUE"`
+	Email    string         `sqlofi:"NOT NULL UNIQUE"`
+	Age      sql.NullInt64  `sqlofi:"CHECK(Age IS NULL OR Age >= 18)"`
+	Created  sql.NullString `sqlofi:"DEFAULT (datetime('now'))"`
 }
 
-type Post struct {
-	ID      int64         `sql:"primary key;autoincrement"`
-	Title   string        `sql:"NOT NULL"`
-	Content string        `sql:"NOT NULL"`
-	UserID  sql.NullInt64 `sql:"foreign key:user (id),ON DELETE CASCADE"`
-	Likes   int           `sql:"DEFAULT:0"`
+type Order struct {
+	Id      int64          `sqlofi:"PRIMARY KEY AUTOINCREMENT"`
+	UserId  sql.NullInt64  `sqlofi:"REFERENCES User (Id)"`
+	Status  string         `sqlofi:"NOT NULL DEFAULT 'pending'"`
+	Total   float64        `sqlofi:"NOT NULL DEFAULT 0"`
+	Created sql.NullString `sqlofi:"DEFAULT (datetime('now'))"`
 }
 
 func main() {
@@ -74,21 +75,21 @@ SQLOFI uses struct tags to define column properties:
 
 ```go
 type MyStruct struct {
-    ID       int64  `sql:"primary key;autoincrement"`
-    Name     string `sql:"NOT NULL;UNIQUE"`
-    ParentID int64  `sql:"foreign key:parent (id),ON DELETE CASCADE"`
-    FullName string `sql:"GENERATED:Name || ' ' || LastName,STORED"`
+    ID       int64  `sqlofi:"PRIMARY KEY AUTOINCREMENT"`
+    Name     string `sqlofi:"NOT NULL UNIQUE"`
+    ParentID int64  `sqlofi:"REFERENCES Parent (Id) ON DELETE CASCADE"`
+    FullName string `sqlofi:"GENERATED Name || ' ' || LastName STORED"`
 }
 ```
 
 Available tag options include:
-- `primary key` - Makes the column a primary key
-- `autoincrement` - Adds auto-increment (only for INTEGER PRIMARY KEY)
+- `PRIMARY KEY` - Makes the column a primary key
+- `AUTOINCREMENT` - Adds auto-increment (only for INTEGER PRIMARY KEY)
 - `NOT NULL` - Adds NOT NULL constraint
 - `UNIQUE` - Adds UNIQUE constraint
 - `DEFAULT:value` - Sets default value
-- `foreign key:table (column),action` - Creates foreign key reference
-- `GENERATED:expression,STORED/VIRTUAL` - Creates computed column
+- `REFERENCES User (column) <action>` - Creates foreign key reference
+- `GENERATED expression,STORED/VIRTUAL` - Creates computed column
 
 ## Project Status
 
